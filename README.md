@@ -58,7 +58,7 @@ The TV Show Tracker helps you keep track of which episode and season you're on f
 #### Development Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/tv-show-tracker-electron.git
+   git clone https://github.com/MushroomFleet/TV-ShowTracker-Electron
    cd tv-show-tracker-electron
    ```
 
