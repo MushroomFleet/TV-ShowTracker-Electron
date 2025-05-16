@@ -1,0 +1,14 @@
+This is a placeholder for the icon file.
+
+For a production application, you would want to:
+1. Create an icon.png file (256x256 pixels recommended)
+2. Place it in this assets folder
+3. The icon should be referenced in main.js
+
+You can use tools like:
+- Adobe Illustrator
+- Figma
+- GIMP
+- Or an online icon creator
+
+The icon serves as the application icon in the taskbar, window title, and OS application listings.

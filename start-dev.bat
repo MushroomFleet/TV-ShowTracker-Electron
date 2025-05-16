@@ -1,0 +1,3 @@
+@echo off
+echo Starting TV Show Tracker in development mode with DevTools...
+npm run dev

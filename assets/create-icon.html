@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create TV Show Tracker Icon</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f5f5f5;
+    }
+    canvas {
+      border: 1px solid #ddd;
+      margin-bottom: 20px;
+      background-color: white;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #4338ca;
+    }
+    .instructions {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 15px;
+      background-color: #e0e7ff;
+      border-radius: 8px;
+      border-left: 4px solid #4f46e5;
+    }
+  </style>
+</head>
+<body>
+  <h1>TV Show Tracker Icon Creator</h1>
+  
+  <div class="instructions">
+    <p>This page creates a simple TV icon for the TV Show Tracker application. Click the "Download Icon" button to save the icon as a PNG file.</p>
+    <p>After downloading, rename the file to <strong>icon.png</strong> and place it in the assets folder.</p>
+  </div>
+  
+  <canvas id="iconCanvas" width="256" height="256"></canvas>
+  
+  <button id="downloadBtn">Download Icon</button>
+  
+  <script>
+    const canvas = document.getElementById('iconCanvas');
+    const ctx = canvas.getContext('2d');
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    // Draw TV Icon
+    function drawIcon() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Set background
+      ctx.fillStyle = '#4f46e5'; // Indigo color
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw TV outline
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 12;
+      
+      // TV body
+      roundRect(ctx, 48, 48, 160, 120, 10, true, false);
+      
+      // TV screen
+      ctx.fillStyle = '#111827';
+      roundRect(ctx, 58, 58, 140, 100, 5, true, false);
+      
+      // TV stand
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(108, 168);
+      ctx.lineTo(148, 168);
+      ctx.lineTo(158, 200);
+      ctx.lineTo(98, 200);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Draw play symbol on screen
+      ctx.fillStyle = '#4ade80'; // Green color
+      ctx.beginPath();
+      ctx.moveTo(98, 88);
+      ctx.lineTo(98, 128);
+      ctx.lineTo(138, 108);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Draw text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('TV TRACKER', 128, 230);
+    }
+    
+    // Helper function for drawing rounded rectangles
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) {
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.stroke();
+      }
+    }
+    
+    // Draw the icon when page loads
+    drawIcon();
+    
+    // Download button event
+    downloadBtn.addEventListener('click', function() {
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'icon.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  </script>
+</body>
+</html>
