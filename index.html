@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV Show Tracker</title>
+  <title>Media Progress Tracker</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Alpine.js via CDN -->
@@ -56,11 +56,11 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div x-data="tvShowTracker()" x-init="init()" class="container mx-auto p-4 max-w-6xl">
-    <header class="mb-6 text-center">
+<header class="mb-6 text-center">
       <h1 class="text-3xl font-bold text-indigo-700 mb-2">
-        <i class="fas fa-tv mr-2"></i>TV Show Progress Tracker
+        <i class="fas fa-bookmark mr-2"></i>Media Progress Tracker
       </h1>
-      <p class="text-gray-600">Keep track of your favorite TV shows</p>
+      <p class="text-gray-600">Keep track of your favorite TV shows, comics, and books</p>
     </header>
     
     <!-- Tab Navigation -->
@@ -93,23 +93,57 @@
     <!-- Content Area -->
     <div class="bg-white rounded-lg shadow-md p-6">
       <!-- Track Progress Tab -->
-      <div x-show="activeTab === 'track'" class="fade-in">
-        <h2 class="text-xl font-semibold mb-4 text-indigo-700"><i class="fas fa-edit mr-2"></i>Track Show Progress</h2>
+<div x-show="activeTab === 'track'" class="fade-in">
+        <h2 class="text-xl font-semibold mb-4 text-indigo-700"><i class="fas fa-edit mr-2"></i>Track Media Progress</h2>
+        
+        <!-- Media Type Selection -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+          <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center">
+              <input 
+                type="radio" 
+                x-model="newShow.mediaType" 
+                value="tv-show" 
+                class="form-radio text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+              >
+              <span class="ml-2"><i class="fas fa-tv text-gray-500 mr-1"></i>TV Show</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input 
+                type="radio" 
+                x-model="newShow.mediaType" 
+                value="comic" 
+                class="form-radio text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+              >
+              <span class="ml-2"><i class="fas fa-book-open text-gray-500 mr-1"></i>Comic</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input 
+                type="radio" 
+                x-model="newShow.mediaType" 
+                value="book" 
+                class="form-radio text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+              >
+              <span class="ml-2"><i class="fas fa-book text-gray-500 mr-1"></i>Book</span>
+            </label>
+          </div>
+        </div>
         
         <div class="mb-4">
-          <label for="show-name" class="block text-sm font-medium text-gray-700 mb-1">TV Show Name</label>
+          <label for="show-name" class="block text-sm font-medium text-gray-700 mb-1" x-text="getMediaNameLabel()"></label>
           <input 
             type="text" 
             id="show-name" 
             x-model="newShow.name" 
-            placeholder="Enter the name of your TV show" 
+            :placeholder="'Enter the name of your ' + getMediaTypeName()" 
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label for="season" class="block text-sm font-medium text-gray-700 mb-1">Season</label>
+            <label for="season" class="block text-sm font-medium text-gray-700 mb-1" x-text="getSeasonLabel()"></label>
             <div class="flex items-center">
               <input 
                 type="number" 
@@ -122,14 +156,14 @@
                 <button 
                   @click="newShow.season++" 
                   class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-t border border-gray-300"
-                  title="Increase season"
+                  :title="'Increase ' + getSeasonLabel().toLowerCase()"
                 >
                   <i class="fas fa-chevron-up"></i>
                 </button>
                 <button 
                   @click="newShow.season > 1 ? newShow.season-- : null" 
                   class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-b border border-gray-300 border-t-0"
-                  title="Decrease season"
+                  :title="'Decrease ' + getSeasonLabel().toLowerCase()"
                 >
                   <i class="fas fa-chevron-down"></i>
                 </button>
@@ -138,7 +172,7 @@
           </div>
           
           <div>
-            <label for="episode" class="block text-sm font-medium text-gray-700 mb-1">Episode</label>
+            <label for="episode" class="block text-sm font-medium text-gray-700 mb-1" x-text="getEpisodeLabel()"></label>
             <div class="flex items-center">
               <input 
                 type="number" 
@@ -151,14 +185,14 @@
                 <button 
                   @click="newShow.episode++" 
                   class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-t border border-gray-300"
-                  title="Increase episode"
+                  :title="'Increase ' + getEpisodeLabel().toLowerCase()"
                 >
                   <i class="fas fa-chevron-up"></i>
                 </button>
                 <button 
                   @click="newShow.episode > 1 ? newShow.episode-- : null" 
                   class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-b border border-gray-300 border-t-0"
-                  title="Decrease episode"
+                  :title="'Decrease ' + getEpisodeLabel().toLowerCase()"
                 >
                   <i class="fas fa-chevron-down"></i>
                 </button>
@@ -219,7 +253,10 @@
                 <div class="flex justify-between items-start">
                   <div class="flex-1">
                     <h3 class="font-semibold text-lg" x-html="getShowEmoji(progress) + ' ' + show"></h3>
-                    <p class="text-gray-700">Season <span x-text="progress.Season"></span>, Episode <span x-text="progress.Episode"></span></p>
+                    <p class="text-gray-700">
+                      <span x-text="getMediaSeasonLabel(progress)"></span> <span x-text="progress.Season"></span>, 
+                      <span x-text="getMediaEpisodeLabel(progress)"></span> <span x-text="progress.Episode"></span>
+                    </p>
                     <template x-if="progress.Notes">
                       <div class="mt-2 text-sm text-gray-600">
                         <p class="font-medium mb-1"><i class="fas fa-sticky-note mr-1"></i>Notes:</p>
@@ -376,6 +413,7 @@
         tvShows: {},
         newShow: {
           name: '',
+          mediaType: 'tv-show', // Default to TV Show
           season: 1,
           episode: 1,
           notes: ''
@@ -408,14 +446,80 @@
             }, {});
         },
         
+        // Media type helper functions
+        getMediaTypeName() {
+          const mediaTypes = {
+            'tv-show': 'TV Show',
+            'comic': 'Comic',
+            'book': 'Book'
+          };
+          return mediaTypes[this.newShow.mediaType] || 'TV Show';
+        },
+        
+        getMediaNameLabel() {
+          const labels = {
+            'tv-show': 'TV Show Name',
+            'comic': 'Comic Title',
+            'book': 'Book Title'
+          };
+          return labels[this.newShow.mediaType] || 'Name';
+        },
+        
+        getSeasonLabel() {
+          const labels = {
+            'tv-show': 'Season',
+            'comic': 'Issue',
+            'book': 'Volume'
+          };
+          return labels[this.newShow.mediaType] || 'Season';
+        },
+        
+        getEpisodeLabel() {
+          const labels = {
+            'tv-show': 'Episode',
+            'comic': 'Page',
+            'book': 'Page'
+          };
+          return labels[this.newShow.mediaType] || 'Episode';
+        },
+        
+        getMediaSeasonLabel(progress) {
+          const mediaType = progress.MediaType || 'tv-show'; // Default to tv-show for backward compatibility
+          const labels = {
+            'tv-show': 'Season',
+            'comic': 'Issue',
+            'book': 'Volume'
+          };
+          return labels[mediaType] || 'Season';
+        },
+        
+        getMediaEpisodeLabel(progress) {
+          const mediaType = progress.MediaType || 'tv-show'; // Default to tv-show for backward compatibility
+          const labels = {
+            'tv-show': 'Episode',
+            'comic': 'Page',
+            'book': 'Page'
+          };
+          return labels[mediaType] || 'Episode';
+        },
+        
         getShowEmoji(progress) {
-          // Add emoji based on progress
+          // Add emoji based on progress and media type
+          const mediaType = progress.MediaType || 'tv-show'; // Default to tv-show for backward compatibility
+          
           if (progress.Season === 1 && progress.Episode <= 3) {
-            return '🆕'; // New show
+            return mediaType === 'tv-show' ? '🆕' : 
+                   mediaType === 'comic' ? '📖' : 
+                   mediaType === 'book' ? '📚' : '🆕';
           } else if (progress.Season >= 3) {
-            return '🌟'; // Long-running show
+            return mediaType === 'tv-show' ? '🌟' : 
+                   mediaType === 'comic' ? '🔖' : 
+                   mediaType === 'book' ? '📚' : '🌟';
           }
-          return '🎬'; // Default emoji
+          
+          return mediaType === 'tv-show' ? '🎬' : 
+                 mediaType === 'comic' ? '📖' : 
+                 mediaType === 'book' ? '📕' : '🎬';
         },
         
         formatNotes(notes) {
@@ -434,7 +538,7 @@
         
         async trackShow() {
           if (!this.newShow.name.trim()) {
-            this.statusMessage.track = '⚠️ Please enter a valid show name!';
+            this.statusMessage.track = '⚠️ Please enter a valid name!';
             return;
           }
           
@@ -443,17 +547,21 @@
               name: this.newShow.name.trim(),
               season: this.newShow.season,
               episode: this.newShow.episode,
-              notes: this.newShow.notes
+              notes: this.newShow.notes,
+              mediaType: this.newShow.mediaType // Add mediaType
             });
             
             this.statusMessage.track = result.message;
+            
+            // Reset form fields
+            this.newShow.name = '';
             
             // Refresh the show list
             this.tvShows = await window.electronAPI.loadProgress();
             
           } catch (error) {
-            console.error('Error tracking show:', error);
-            this.statusMessage.track = `⚠️ Error tracking show: ${error.message || 'Unknown error'}`;
+            console.error('Error tracking media:', error);
+            this.statusMessage.track = `⚠️ Error tracking media: ${error.message || 'Unknown error'}`;
           }
         },
         
@@ -543,18 +651,25 @@
             const show = this.tvShows[showName];
             if (!show) return;
             
+            // Include mediaType in the update
             const result = await window.electronAPI.trackShow({
               name: showName,
               season: show.Season,
               episode: show.Episode + 1,
-              notes: show.Notes
+              notes: show.Notes,
+              mediaType: show.MediaType || 'tv-show' // Preserve media type, default to tv-show
             });
             
             if (result.success) {
               // Refresh the show list
               this.tvShows = await window.electronAPI.loadProgress();
-              // Show temporary success message
-              this.updateMessages[showName] = `✓ Updated to S${show.Season}E${show.Episode + 1}`;
+              
+              // Get the appropriate labels for the success message
+              const seasonLabel = this.getMediaSeasonLabel(show);
+              const episodeLabel = this.getMediaEpisodeLabel(show);
+              
+              // Show temporary success message with proper labels
+              this.updateMessages[showName] = `✓ Updated to ${seasonLabel} ${show.Season}, ${episodeLabel} ${show.Episode + 1}`;
             }
           } catch (error) {
             console.error('Error updating episode:', error);
@@ -567,18 +682,25 @@
             const show = this.tvShows[showName];
             if (!show || show.Episode <= 1) return;
             
+            // Include mediaType in the update
             const result = await window.electronAPI.trackShow({
               name: showName,
               season: show.Season,
               episode: show.Episode - 1,
-              notes: show.Notes
+              notes: show.Notes,
+              mediaType: show.MediaType || 'tv-show' // Preserve media type, default to tv-show
             });
             
             if (result.success) {
               // Refresh the show list
               this.tvShows = await window.electronAPI.loadProgress();
-              // Show temporary success message
-              this.updateMessages[showName] = `✓ Updated to S${show.Season}E${show.Episode - 1}`;
+              
+              // Get the appropriate labels for the success message
+              const seasonLabel = this.getMediaSeasonLabel(show);
+              const episodeLabel = this.getMediaEpisodeLabel(show);
+              
+              // Show temporary success message with proper labels
+              this.updateMessages[showName] = `✓ Updated to ${seasonLabel} ${show.Season}, ${episodeLabel} ${show.Episode - 1}`;
             }
           } catch (error) {
             console.error('Error updating episode:', error);
@@ -591,18 +713,24 @@
             const show = this.tvShows[showName];
             if (!show) return;
             
+            // Include mediaType in the update
             const result = await window.electronAPI.trackShow({
               name: showName,
               season: show.Season + 1,
               episode: 1, // Reset episode to 1
-              notes: show.Notes
+              notes: show.Notes,
+              mediaType: show.MediaType || 'tv-show' // Preserve media type, default to tv-show
             });
             
             if (result.success) {
               // Refresh the show list
               this.tvShows = await window.electronAPI.loadProgress();
-              // Show temporary success message
-              this.updateMessages[showName] = `✓ Started Season ${show.Season + 1}`;
+              
+              // Get the appropriate label for the success message
+              const seasonLabel = this.getMediaSeasonLabel(show);
+              
+              // Show temporary success message with proper label
+              this.updateMessages[showName] = `✓ Started ${seasonLabel} ${show.Season + 1}`;
             }
           } catch (error) {
             console.error('Error updating season:', error);

@@ -5,11 +5,23 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --dev"
+    "dev": "electron . --dev",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.scuffedepoch.tvshowtracker",
+    "productName": "TV Show Tracker",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "dir"
+    }
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.0.0"
+    "electron": "^28.0.0",
+    "electron-builder": "^26.0.12"
   }
 }

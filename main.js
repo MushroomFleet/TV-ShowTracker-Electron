@@ -109,28 +109,52 @@ ipcMain.handle('track-show', async (event, show) => {
   const progress = loadTVShowProgress();
   const prevProgress = progress[show.name] || null;
   
+  // Set default mediaType to tv-show for backward compatibility
+  const mediaType = show.mediaType || 'tv-show';
+  
   progress[show.name] = {
     Season: show.season,
     Episode: show.episode,
-    Notes: show.notes || ''
+    Notes: show.notes || '',
+    MediaType: mediaType // Store the media type
   };
   
   const result = saveTVShowProgress(progress);
   
   let progressEmoji = '🆕 ';
+  
+  // Define labels based on media type
+  const seasonLabel = {
+    'tv-show': 'Season',
+    'comic': 'Issue',
+    'book': 'Volume'
+  }[mediaType] || 'Season';
+  
+  const episodeLabel = {
+    'tv-show': 'Episode',
+    'comic': 'Page',
+    'book': 'Page'
+  }[mediaType] || 'Episode';
+  
   if (prevProgress) {
     if (show.season > prevProgress.Season || (show.season === prevProgress.Season && show.episode > prevProgress.Episode)) {
-      progressEmoji = '⏩ ';  // Forward progress
+      progressEmoji = mediaType === 'tv-show' ? '⏩ ' : 
+                      mediaType === 'comic' ? '📖 ' : 
+                      mediaType === 'book' ? '📚 ' : '⏩ ';  // Forward progress
     } else if (show.season < prevProgress.Season || (show.season === prevProgress.Season && show.episode < prevProgress.Episode)) {
-      progressEmoji = '⏪ ';  // Backward progress
+      progressEmoji = mediaType === 'tv-show' ? '⏪ ' : 
+                      mediaType === 'comic' ? '📑 ' : 
+                      mediaType === 'book' ? '📕 ' : '⏪ ';  // Backward progress
     } else {
-      progressEmoji = '📺 ';  // Same position
+      progressEmoji = mediaType === 'tv-show' ? '📺 ' : 
+                      mediaType === 'comic' ? '🔖 ' : 
+                      mediaType === 'book' ? '📓 ' : '📺 ';  // Same position
     }
   }
   
   return {
     success: result,
-    message: `${progressEmoji}Updated progress for '${show.name}' - Season ${show.season}, Episode ${show.episode}`
+    message: `${progressEmoji}Updated progress for '${show.name}' - ${seasonLabel} ${show.season}, ${episodeLabel} ${show.episode}`
   };
 });
 
