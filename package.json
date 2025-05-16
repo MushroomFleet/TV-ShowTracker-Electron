@@ -1,22 +1,25 @@
 {
   "name": "tv-show-tracker-electron",
-  "version": "1.0.0",
-  "description": "An Electron app to track TV show watching progress",
+  "version": "1.5.0",
+  "description": "An Electron app to track progress on TV shows, comics, and books",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "build-portable": "electron-builder --win portable --publish never"
   },
   "build": {
     "appId": "com.scuffedepoch.tvshowtracker",
-    "productName": "TV Show Tracker",
+    "productName": "Media Progress Tracker",
     "directories": {
       "output": "dist"
     },
     "win": {
       "target": "dir"
-    }
+    },
+    "asar": true,
+    "npmRebuild": false
   },
   "author": "",
   "license": "MIT",

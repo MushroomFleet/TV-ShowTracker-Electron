@@ -1,0 +1,3 @@
+@echo off
+echo Starting Media Progress Tracker...
+start "" "%~dp0dist\win-unpacked\Media Progress Tracker.exe"
