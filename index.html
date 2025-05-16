@@ -112,14 +112,28 @@
             <label for="season" class="block text-sm font-medium text-gray-700 mb-1">Season</label>
             <div class="flex items-center">
               <input 
-                type="range" 
+                type="number" 
                 id="season" 
                 x-model.number="newShow.season" 
-                min="1" 
-                max="20" 
-                class="w-full mr-3 accent-indigo-600"
+                min="1"
+                class="w-20 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center"
               >
-              <span class="text-gray-700 w-10 text-center" x-text="newShow.season"></span>
+              <div class="flex flex-col ml-1">
+                <button 
+                  @click="newShow.season++" 
+                  class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-t border border-gray-300"
+                  title="Increase season"
+                >
+                  <i class="fas fa-chevron-up"></i>
+                </button>
+                <button 
+                  @click="newShow.season > 1 ? newShow.season-- : null" 
+                  class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-b border border-gray-300 border-t-0"
+                  title="Decrease season"
+                >
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+              </div>
             </div>
           </div>
           
@@ -127,14 +141,28 @@
             <label for="episode" class="block text-sm font-medium text-gray-700 mb-1">Episode</label>
             <div class="flex items-center">
               <input 
-                type="range" 
+                type="number" 
                 id="episode" 
                 x-model.number="newShow.episode" 
-                min="1" 
-                max="30" 
-                class="w-full mr-3 accent-indigo-600"
+                min="1"
+                class="w-20 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center"
               >
-              <span class="text-gray-700 w-10 text-center" x-text="newShow.episode"></span>
+              <div class="flex flex-col ml-1">
+                <button 
+                  @click="newShow.episode++" 
+                  class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-t border border-gray-300"
+                  title="Increase episode"
+                >
+                  <i class="fas fa-chevron-up"></i>
+                </button>
+                <button 
+                  @click="newShow.episode > 1 ? newShow.episode-- : null" 
+                  class="h-6 px-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-b border border-gray-300 border-t-0"
+                  title="Decrease episode"
+                >
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -187,24 +215,60 @@
           
           <template x-for="(progress, show) in sortedShows" :key="show">
             <div class="bg-white rounded-lg shadow-sm p-4 mb-3 slide-in">
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <h3 class="font-semibold text-lg" x-html="getShowEmoji(progress) + ' ' + show"></h3>
-                  <p class="text-gray-700">Season <span x-text="progress.Season"></span>, Episode <span x-text="progress.Episode"></span></p>
-                  <template x-if="progress.Notes">
-                    <div class="mt-2 text-sm text-gray-600">
-                      <p class="font-medium mb-1"><i class="fas fa-sticky-note mr-1"></i>Notes:</p>
-                      <p x-html="formatNotes(progress.Notes)"></p>
-                    </div>
-                  </template>
+              <div class="flex flex-col">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <h3 class="font-semibold text-lg" x-html="getShowEmoji(progress) + ' ' + show"></h3>
+                    <p class="text-gray-700">Season <span x-text="progress.Season"></span>, Episode <span x-text="progress.Episode"></span></p>
+                    <template x-if="progress.Notes">
+                      <div class="mt-2 text-sm text-gray-600">
+                        <p class="font-medium mb-1"><i class="fas fa-sticky-note mr-1"></i>Notes:</p>
+                        <p x-html="formatNotes(progress.Notes)"></p>
+                      </div>
+                    </template>
+                  </div>
+                  <button 
+                    @click="confirmDeleteShow(show)" 
+                    class="text-red-500 hover:text-red-700 focus:outline-none"
+                    title="Delete show"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
                 </div>
-                <button 
-                  @click="confirmDeleteShow(show)" 
-                  class="text-red-500 hover:text-red-700 focus:outline-none"
-                  title="Delete show"
-                >
-                  <i class="fas fa-trash"></i>
-                </button>
+                
+                <!-- Quick Edit Controls -->
+                <div class="quick-edit-controls flex items-center gap-2 mt-3 bg-gray-50 p-2 rounded-md">
+                  <button 
+                    @click="quickDecrementEpisode(show)" 
+                    class="bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center hover:bg-gray-300 transition-colors duration-150"
+                    title="Previous episode"
+                  >
+                    <i class="fas fa-minus text-sm"></i>
+                  </button>
+                  
+                  <button 
+                    @click="quickIncrementEpisode(show)" 
+                    class="bg-indigo-500 rounded-full h-8 w-8 flex items-center justify-center text-white hover:bg-indigo-600 transition-colors duration-150"
+                    title="Next episode"
+                  >
+                    <i class="fas fa-plus text-sm"></i>
+                  </button>
+                  
+                  <button 
+                    @click="nextSeason(show)" 
+                    class="bg-gray-200 px-2 py-1 rounded text-xs hover:bg-gray-300 transition-colors duration-150 ml-1"
+                    title="Next season"
+                  >
+                    <i class="fas fa-step-forward mr-1"></i>Next Season
+                  </button>
+                  
+                  <span 
+                    x-show="updateMessages[show]" 
+                    x-text="updateMessages[show]" 
+                    class="text-xs text-green-600 ml-2 fade-in"
+                    x-effect="if(updateMessages[show]) { setTimeout(() => { updateMessages[show] = '' }, 3000) }"
+                  ></span>
+                </div>
               </div>
             </div>
           </template>
@@ -324,6 +388,7 @@
           delete: '',
           backup: ''
         },
+        updateMessages: {}, // For quick edit feedback messages
         
         async init() {
           try {
@@ -354,9 +419,17 @@
         },
         
         formatNotes(notes) {
-          // Handle notes with URL detection
+          // Handle notes with URL detection and use Electron to open external URLs
           const urlPattern = /(https?:\/\/[^\s]+)/g;
-          return notes.replace(urlPattern, '<a href="$1" target="_blank" class="text-indigo-600 hover:underline">$1</a>');
+          return notes.replace(urlPattern, '<a href="#" @click.prevent="openExternalLink(\'$1\')" class="text-indigo-600 hover:underline flex items-center"><i class="fas fa-external-link-alt text-xs mr-1"></i>$1</a>');
+        },
+        
+        async openExternalLink(url) {
+          try {
+            await window.electronAPI.openExternalUrl(url);
+          } catch (error) {
+            console.error('Error opening external URL:', error);
+          }
         },
         
         async trackShow() {
@@ -461,6 +534,78 @@
           } catch (error) {
             console.error('Error importing backup:', error);
             this.statusMessage.backup = `⚠️ Error importing backup: ${error.message || 'Unknown error'}`;
+          }
+        },
+        
+        // Quick episode increment
+        async quickIncrementEpisode(showName) {
+          try {
+            const show = this.tvShows[showName];
+            if (!show) return;
+            
+            const result = await window.electronAPI.trackShow({
+              name: showName,
+              season: show.Season,
+              episode: show.Episode + 1,
+              notes: show.Notes
+            });
+            
+            if (result.success) {
+              // Refresh the show list
+              this.tvShows = await window.electronAPI.loadProgress();
+              // Show temporary success message
+              this.updateMessages[showName] = `✓ Updated to S${show.Season}E${show.Episode + 1}`;
+            }
+          } catch (error) {
+            console.error('Error updating episode:', error);
+          }
+        },
+        
+        // Quick episode decrement
+        async quickDecrementEpisode(showName) {
+          try {
+            const show = this.tvShows[showName];
+            if (!show || show.Episode <= 1) return;
+            
+            const result = await window.electronAPI.trackShow({
+              name: showName,
+              season: show.Season,
+              episode: show.Episode - 1,
+              notes: show.Notes
+            });
+            
+            if (result.success) {
+              // Refresh the show list
+              this.tvShows = await window.electronAPI.loadProgress();
+              // Show temporary success message
+              this.updateMessages[showName] = `✓ Updated to S${show.Season}E${show.Episode - 1}`;
+            }
+          } catch (error) {
+            console.error('Error updating episode:', error);
+          }
+        },
+        
+        // Next season
+        async nextSeason(showName) {
+          try {
+            const show = this.tvShows[showName];
+            if (!show) return;
+            
+            const result = await window.electronAPI.trackShow({
+              name: showName,
+              season: show.Season + 1,
+              episode: 1, // Reset episode to 1
+              notes: show.Notes
+            });
+            
+            if (result.success) {
+              // Refresh the show list
+              this.tvShows = await window.electronAPI.loadProgress();
+              // Show temporary success message
+              this.updateMessages[showName] = `✓ Started Season ${show.Season + 1}`;
+            }
+          } catch (error) {
+            console.error('Error updating season:', error);
           }
         }
       };

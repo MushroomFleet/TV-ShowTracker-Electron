@@ -14,6 +14,9 @@ contextBridge.exposeInMainWorld(
     // Backup management
     createBackup: () => ipcRenderer.invoke('create-backup'),
     importBackup: (filePath) => ipcRenderer.invoke('import-backup', filePath),
-    selectBackupFile: () => ipcRenderer.invoke('select-backup-file')
+    selectBackupFile: () => ipcRenderer.invoke('select-backup-file'),
+    
+    // URL handling
+    openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url)
   }
 );
