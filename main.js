@@ -4,20 +4,52 @@ const fs = require('fs');
 
 // File to store TV show progress
 const PROGRESS_FILE = path.join(app.getPath('userData'), 'tv_show_progress.json');
+// File to store app settings
+const SETTINGS_FILE = path.join(app.getPath('userData'), 'app_settings.json');
 
 let mainWindow;
+let appSettings = {
+  minimalMode: false
+};
+
+// Load application settings
+function loadSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
+      appSettings = JSON.parse(data);
+    } else {
+      saveSettings(); // Create default settings file
+    }
+  } catch (error) {
+    console.error('Error loading app settings:', error);
+  }
+}
+
+// Save application settings
+function saveSettings() {
+  try {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(appSettings, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving app settings:', error);
+  }
+}
 
 function createWindow() {
+  // Set window size based on minimal mode
+  const windowWidth = appSettings.minimalMode ? 800 : 1000;
+  const windowHeight = appSettings.minimalMode ? 700 : 800;
+  
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 800,
+    width: windowWidth,
+    height: windowHeight,
+    minWidth: appSettings.minimalMode ? 600 : 800,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
-    }
-    // Icon path commented out until we have an icon
-    // icon: path.join(__dirname, 'assets', 'icon.png')
+    },
+    icon: path.join(__dirname, 'assets', 'icon.png')
   });
 
   mainWindow.loadFile('index.html');
@@ -33,6 +65,8 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Load settings before creating the window
+  loadSettings();
   createWindow();
 
   app.on('activate', () => {
@@ -233,4 +267,43 @@ ipcMain.handle('open-external-url', async (event, url) => {
     console.error('Error opening external URL:', error);
     return { success: false, error: error.message };
   }
+});
+
+// Set minimal mode
+ipcMain.handle('set-minimal-mode', async (event, enabled) => {
+  try {
+    // Update app settings
+    appSettings.minimalMode = enabled;
+    saveSettings();
+    
+    // Update window size if window exists
+    if (mainWindow) {
+      const newWidth = enabled ? 800 : 1000;
+      const newHeight = enabled ? 700 : 800;
+      const newMinWidth = enabled ? 600 : 800;
+      
+      mainWindow.setMinimumSize(newMinWidth, 600);
+      
+      // Get current position
+      const bounds = mainWindow.getBounds();
+      
+      // Update size while keeping position
+      mainWindow.setBounds({
+        x: bounds.x,
+        y: bounds.y,
+        width: newWidth,
+        height: newHeight
+      });
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error setting minimal mode:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get app settings
+ipcMain.handle('get-app-settings', async () => {
+  return appSettings;
 });

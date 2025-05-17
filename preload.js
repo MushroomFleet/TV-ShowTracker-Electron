@@ -17,6 +17,10 @@ contextBridge.exposeInMainWorld(
     selectBackupFile: () => ipcRenderer.invoke('select-backup-file'),
     
     // URL handling
-    openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url)
+    openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url),
+    
+    // App settings and minimal mode
+    getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
+    setMinimalMode: (enabled) => ipcRenderer.invoke('set-minimal-mode', enabled)
   }
 );

@@ -24,14 +24,31 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Alpine.js Store for Dark Mode -->
+  <!-- Alpine.js Stores for Dark Mode and Minimal Mode -->
   <script>
     document.addEventListener('alpine:init', () => {
+      // Dark Mode Store
       Alpine.store('darkMode', {
         enabled: localStorage.getItem('darkMode') === 'true',
         toggle() {
           this.enabled = !this.enabled;
           localStorage.setItem('darkMode', this.enabled);
+        }
+      });
+      
+      // Minimal Mode Store
+      Alpine.store('minimalMode', {
+        enabled: localStorage.getItem('minimalMode') === 'true',
+        async toggle() {
+          this.enabled = !this.enabled;
+          localStorage.setItem('minimalMode', this.enabled);
+          
+          // Sync with Electron to adjust window size
+          try {
+            await window.electronAPI.setMinimalMode(this.enabled);
+          } catch (error) {
+            console.error('Error syncing minimal mode with main process:', error);
+          }
         }
       });
       
@@ -41,6 +58,24 @@
       } else {
         document.documentElement.classList.remove('dark');
       }
+      
+      // Initialize app settings from the main process
+      const initAppSettings = async () => {
+        try {
+          const settings = await window.electronAPI.getAppSettings();
+          
+          // Sync minimal mode with main process settings
+          if (settings.minimalMode !== Alpine.store('minimalMode').enabled) {
+            Alpine.store('minimalMode').enabled = settings.minimalMode;
+            localStorage.setItem('minimalMode', settings.minimalMode);
+          }
+        } catch (error) {
+          console.error('Error loading app settings:', error);
+        }
+      };
+      
+      // Initialize settings after Alpine is ready
+      initAppSettings();
     });
   </script>
   
@@ -87,16 +122,41 @@
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-200">
-  <div x-data="tvShowTracker()" x-init="init()" class="container mx-auto p-4 max-w-6xl">
-<header class="mb-6 text-center relative">
-      <div class="absolute right-0 top-0">
+  <div 
+    x-data="tvShowTracker()" 
+    x-init="init()" 
+    class="container mx-auto p-4 transition-all duration-300"
+    :class="{'max-w-6xl': !$store.minimalMode.enabled, 'max-w-3xl': $store.minimalMode.enabled}"
+  >
+    <header class="mb-6 text-center relative">
+      <div class="absolute right-0 top-0 flex space-x-2">
+        <!-- Minimal Mode Toggle -->
+        <button 
+          @click="$store.minimalMode.toggle()" 
+          class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          aria-label="Toggle minimal mode"
+          title="Toggle minimal view"
+        >
+          <i class="fas" :class="$store.minimalMode.enabled ? 'fa-expand' : 'fa-compress'"></i>
+        </button>
+        
+        <!-- Dark Mode Toggle -->
         <button 
           @click="$store.darkMode.toggle()" 
           class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           aria-label="Toggle dark mode"
+          title="Toggle dark mode"
         >
           <i class="fas" :class="$store.darkMode.enabled ? 'fa-sun' : 'fa-moon'"></i>
         </button>
+      </div>
+      
+      <!-- Minimal Mode Indicator -->
+      <div 
+        x-show="$store.minimalMode.enabled" 
+        class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs py-1 px-2 rounded-md mb-2 inline-block"
+      >
+        <i class="fas fa-compress mr-1"></i> Minimal Mode
       </div>
       <h1 class="text-3xl font-bold text-indigo-700 dark:text-indigo-400 mb-2">
         <i class="fas fa-bookmark mr-2"></i>Media Progress Tracker
@@ -106,33 +166,46 @@
     
     <!-- Tab Navigation -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md mb-6 transition-colors duration-200">
-      <nav class="flex border-b dark:border-gray-700">
+      <nav class="flex flex-wrap border-b dark:border-gray-700">
         <button 
           @click="activeTab = 'track'" 
-          :class="{ 'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'track', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== 'track' }"
-          class="flex items-center px-4 py-3 text-center border-b-2 font-medium text-sm sm:text-base transition-all duration-200 ease-in-out"
+          :class="{ 
+            'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'track', 
+            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== 'track',
+            'flex-1': $store.minimalMode.enabled
+          }"
+          class="flex items-center justify-center px-4 py-3 text-center border-b-2 font-medium text-sm sm:text-base transition-all duration-200 ease-in-out"
         >
-          <i class="fas fa-edit mr-2"></i> Track Progress
+          <i class="fas fa-edit mr-2"></i> <span :class="{'hidden sm:inline': $store.minimalMode.enabled}">Track Progress</span><span class="sm:hidden" x-show="$store.minimalMode.enabled">Track</span>
         </button>
         <button 
           @click="activeTab = 'watching'" 
-          :class="{ 'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'watching', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== 'watching' }"
-          class="flex items-center px-4 py-3 text-center border-b-2 font-medium text-sm sm:text-base transition-all duration-200 ease-in-out"
+          :class="{ 
+            'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'watching', 
+            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== 'watching',
+            'flex-1': $store.minimalMode.enabled
+          }"
+          class="flex items-center justify-center px-4 py-3 text-center border-b-2 font-medium text-sm sm:text-base transition-all duration-200 ease-in-out"
         >
-          <i class="fas fa-eye mr-2"></i> Currently Watching
+          <i class="fas fa-eye mr-2"></i> <span :class="{'hidden sm:inline': $store.minimalMode.enabled}">Currently Watching</span><span class="sm:hidden" x-show="$store.minimalMode.enabled">Watching</span>
         </button>
         <button 
           @click="activeTab = 'backup'" 
-          :class="{ 'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'backup', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== 'backup' }"
-          class="flex items-center px-4 py-3 text-center border-b-2 font-medium text-sm sm:text-base transition-all duration-200 ease-in-out"
+          :class="{ 
+            'border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'backup', 
+            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== 'backup',
+            'flex-1': $store.minimalMode.enabled
+          }"
+          class="flex items-center justify-center px-4 py-3 text-center border-b-2 font-medium text-sm sm:text-base transition-all duration-200 ease-in-out"
         >
-          <i class="fas fa-save mr-2"></i> Backup Management
+          <i class="fas fa-save mr-2"></i> <span :class="{'hidden sm:inline': $store.minimalMode.enabled}">Backup Management</span><span class="sm:hidden" x-show="$store.minimalMode.enabled">Backup</span>
         </button>
       </nav>
     </div>
     
     <!-- Content Area -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors duration-200">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md transition-colors duration-200"
+         :class="{'p-6': !$store.minimalMode.enabled, 'p-3 sm:p-4': $store.minimalMode.enabled}">
       <!-- Track Progress Tab -->
 <div x-show="activeTab === 'track'" class="fade-in">
         <h2 class="text-xl font-semibold mb-4 text-indigo-700 dark:text-indigo-400"><i class="fas fa-edit mr-2"></i>Track Media Progress</h2>
@@ -283,7 +356,13 @@
           </button>
         </div>
         
-        <div class="bg-gray-50 dark:bg-gray-700 rounded-md p-4 max-h-96 overflow-y-auto mb-6">
+        <div 
+          class="bg-gray-50 dark:bg-gray-700 rounded-md overflow-y-auto transition-all duration-300" 
+          :class="{
+            'p-4 max-h-96 mb-6': !$store.minimalMode.enabled,
+            'p-2 max-h-[calc(100vh-250px)] mb-3': $store.minimalMode.enabled
+          }"
+        >
           <template x-if="Object.keys(tvShows).length === 0">
             <div class="text-gray-500 text-center py-8">
               <i class="fas fa-inbox text-4xl mb-2 block"></i>
@@ -292,19 +371,34 @@
           </template>
           
           <template x-for="(progress, show) in sortedShows" :key="show">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-3 slide-in">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-3 slide-in transition-all duration-300"
+                 :class="{'p-4': !$store.minimalMode.enabled, 'p-2 sm:p-3': $store.minimalMode.enabled}">
               <div class="flex flex-col">
                 <div class="flex justify-between items-start">
                   <div class="flex-1">
-                    <h3 class="font-semibold text-lg dark:text-gray-200" x-html="getShowEmoji(progress) + ' ' + show"></h3>
-                    <p class="text-gray-700 dark:text-gray-300">
+                    <h3 class="font-semibold dark:text-gray-200 transition-all duration-300"
+                        :class="{'text-lg': !$store.minimalMode.enabled, 'text-base': $store.minimalMode.enabled}"
+                        x-html="getShowEmoji(progress) + ' ' + show"></h3>
+                    <p class="text-gray-700 dark:text-gray-300"
+                       :class="{'text-sm': $store.minimalMode.enabled}">
                       <span x-text="getMediaSeasonLabel(progress)"></span> <span x-text="progress.Season"></span>, 
                       <span x-text="getMediaEpisodeLabel(progress)"></span> <span x-text="progress.Episode"></span>
                     </p>
-                    <template x-if="progress.Notes">
+                    <template x-if="progress.Notes && !$store.minimalMode.enabled">
                       <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         <p class="font-medium mb-1"><i class="fas fa-sticky-note mr-1"></i>Notes:</p>
                         <p x-html="formatNotes(progress.Notes)"></p>
+                      </div>
+                    </template>
+                    <!-- In minimal mode, show notes as a tooltip/expandable section -->
+                    <template x-if="progress.Notes && $store.minimalMode.enabled">
+                      <div class="mt-1">
+                        <button 
+                          @click="showNotesModal = showNotesModal === show ? null : show"
+                          class="text-xs text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 focus:outline-none flex items-center"
+                        >
+                          <i class="fas fa-sticky-note mr-1"></i> View notes
+                        </button>
                       </div>
                     </template>
                   </div>
@@ -318,7 +412,8 @@
                 </div>
                 
                 <!-- Quick Edit Controls -->
-                <div class="quick-edit-controls flex items-center gap-2 mt-3 bg-gray-50 dark:bg-gray-700 p-2 rounded-md">
+                <div class="quick-edit-controls flex items-center gap-2 mt-2 bg-gray-50 dark:bg-gray-700 rounded-md transition-all duration-300"
+                     :class="{'p-2': !$store.minimalMode.enabled, 'p-1': $store.minimalMode.enabled}">
                   <button 
                     @click="quickDecrementEpisode(show)" 
                     class="bg-gray-200 dark:bg-gray-600 rounded-full h-8 w-8 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-150 dark:text-gray-200"
@@ -355,20 +450,53 @@
           </template>
         </div>
         
-        <div class="mt-4 border-t dark:border-gray-700 pt-4">
-          <h3 class="text-lg font-medium mb-3 text-gray-700 dark:text-gray-300"><i class="fas fa-trash-alt mr-2"></i>Remove Show</h3>
+        <!-- Notes Modal -->
+        <div 
+          x-show="showNotesModal" 
+          x-cloak
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        >
+          <div 
+            @click.away="showNotesModal = null"
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 max-w-md w-full"
+          >
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">Notes</h3>
+              <button 
+                @click="showNotesModal = null" 
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <template x-if="showNotesModal && tvShows[showNotesModal]">
+                <div x-html="formatNotes(tvShows[showNotesModal].Notes)"></div>
+              </template>
+            </div>
+          </div>
+        </div>
+      
+        <div class="mt-4 border-t dark:border-gray-700 pt-4 transition-all duration-300"
+             :class="{'pt-3': $store.minimalMode.enabled}">
+          <h3 class="font-medium text-gray-700 dark:text-gray-300 transition-all duration-300"
+              :class="{'text-lg mb-3': !$store.minimalMode.enabled, 'text-base mb-2': $store.minimalMode.enabled}">
+            <i class="fas fa-trash-alt mr-2"></i>Remove Show
+          </h3>
           <div class="flex items-start gap-2">
             <div class="flex-1">
               <input 
                 type="text" 
                 x-model="deleteShowName" 
                 placeholder="Enter show name to remove" 
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-300"
+                :class="{'px-3 py-2': !$store.minimalMode.enabled, 'px-2 py-1 text-sm': $store.minimalMode.enabled}"
               >
             </div>
             <button 
               @click="deleteShow()" 
-              class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition-colors duration-200 whitespace-nowrap"
+              class="bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition-all duration-300 whitespace-nowrap"
+              :class="{'px-4 py-2': !$store.minimalMode.enabled, 'px-3 py-1 text-sm': $store.minimalMode.enabled}"
             >
               <i class="fas fa-trash mr-2"></i>Remove Show
             </button>
@@ -471,6 +599,7 @@
         deleteShowName: '',
         confirmShowName: '',
         showDeleteModal: false,
+        showNotesModal: null, // For viewing notes in minimal mode
         statusMessage: {
           track: '',
           delete: '',
