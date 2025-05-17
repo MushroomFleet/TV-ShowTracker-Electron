@@ -502,41 +502,26 @@
           </div>
         </div>
       
-        <div class="mt-4 border-t dark:border-gray-700 pt-4 transition-all duration-300"
-             :class="{'pt-3': $store.minimalMode.enabled}">
-          <h3 class="font-medium text-gray-700 dark:text-gray-300 transition-all duration-300"
-              :class="{'text-lg mb-3': !$store.minimalMode.enabled, 'text-base mb-2': $store.minimalMode.enabled}">
-            <i class="fas fa-trash-alt mr-2"></i>Remove Show
-          </h3>
-          <div class="flex items-start gap-2">
-            <div class="flex-1">
-              <input 
-                type="text" 
-                x-model="deleteShowName" 
-                placeholder="Enter show name to remove" 
-                class="w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-300"
-                :class="{'px-3 py-2': !$store.minimalMode.enabled, 'px-2 py-1 text-sm': $store.minimalMode.enabled}"
-              >
-            </div>
-            <button 
-              @click="deleteShow()" 
-              class="bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition-all duration-300 whitespace-nowrap"
-              :class="{'px-4 py-2': !$store.minimalMode.enabled, 'px-3 py-1 text-sm': $store.minimalMode.enabled}"
-            >
-              <i class="fas fa-trash mr-2"></i>Remove Show
-            </button>
-          </div>
-          
-          <div 
-            x-show="statusMessage.delete" 
-            x-text="statusMessage.delete" 
-            :class="{
-              'bg-green-100 dark:bg-green-900 border-green-400 dark:border-green-700 text-green-700 dark:text-green-300': !statusMessage.delete.includes('⚠️') && !statusMessage.delete.includes('❌'), 
-              'bg-red-100 dark:bg-red-900 border-red-400 dark:border-red-700 text-red-700 dark:text-red-300': statusMessage.delete.includes('⚠️') || statusMessage.delete.includes('❌')
-            }" 
-            class="mt-4 p-3 border-l-4 rounded-md"
-          ></div>
+        <!-- Website link at the bottom of the viewing list -->
+        <div class="mt-4 pt-3 text-center">
+          <a 
+            href="#" 
+            @click.prevent="openExternalLink('https://www.scuffedepoch.com')" 
+            class="text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200"
+          >
+            www.scuffedepoch.com
+          </a>
         </div>
+        
+        <div 
+          x-show="statusMessage.delete" 
+          x-text="statusMessage.delete" 
+          :class="{
+            'bg-green-100 dark:bg-green-900 border-green-400 dark:border-green-700 text-green-700 dark:text-green-300': !statusMessage.delete.includes('⚠️') && !statusMessage.delete.includes('❌'), 
+            'bg-red-100 dark:bg-red-900 border-red-400 dark:border-red-700 text-red-700 dark:text-red-300': statusMessage.delete.includes('⚠️') || statusMessage.delete.includes('❌')
+          }" 
+          class="mt-4 p-3 border-l-4 rounded-md"
+        ></div>
       </div>
       
       <!-- Backup Management Tab - Hidden in Minimal Mode -->
